@@ -1,0 +1,538 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+	<title>Employee Portal</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+	<link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/r-2.2.1/datatables.min.css">
+	<link rel="stylesheet" href="https://cdn.datatables.net/select/1.3.1/css/select.dataTables.min.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+	<!-- For Excel Button -->
+	<link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.6.2/css/buttons.dataTables.min.css">
+	<!-- For Excel Button -->
+	<link rel="stylesheet" href="emp_portal_style">
+	<style>
+	.pre-loader {
+		position: fixed;
+		left: 0px;
+		top: 0px;
+		width: 100%;f
+		height: 100%;
+		z-index: 9999;
+		background: url("linkLoader") center no-repeat #fff;
+		opacity: 0.5;
+		filter: alpha(opacity=50);
+	}
+	.modal {
+		top: 25%;
+	}
+	.ui-datepicker select.ui-datepicker-month,
+	.ui-datepicker select.ui-datepicker-year {
+		width: 100% !important;
+	}
+	</style>
+</head>
+
+<body class="is-preload">
+	<div class="container">
+		<div class="modal fade" id="myModal" role="dialog">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-body"> <i class="fa fa-close" style="float:right; color:rgb(228, 104, 41);" data-dismiss="modal"></i>
+						<br/> <b>Approved/Rejected Comments</b>
+						<center>
+<textarea type="text" id="commentsId"></textarea>
+
+						 </center>
+						</br>
+						<button type="button" id="add_comment" style="float:right;" class="button small" data-dismiss="modal">SUBMIT</button>
+						<br/> </div>
+				</div>
+			</div>
+		</div>
+		<div class="modal fade" id="confirmSubmission" role="dialog">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-body">
+<center>
+<span id="tesid">approvereject</span>
+</center>
+<center><br/><button type="button" id="approvebuttonid" style="float:center;" class="button small" data-dismiss="modal">OK</button></center>
+</div>
+</div> 
+</div>
+</div>
+		<div class="modal fade" id="filterModal" role="dialog">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-body">
+<i class="fa fa-close" style="float:right; color:rgb(228, 104, 41);" data-dismiss="modal"></i><br/>
+<form id="submitfiltersdata" method="post" action="nonpostingaction">
+<div class="row gtr-uniform">
+<div class="col-6 col-12-xsmall">
+<select name="projectfilterid" id="projectfilterid" >
+projectFieldId
+</select>
+</div>
+<div class="col-6 col-12-xsmall">
+<select name="taskfilterid" id="taskfilterid" >
+taskFieldId
+</select>
+</div>
+<div class="col-6 col-12-xsmall">
+<input type="text" name="from" id="from" placeholder="From (Inclusive)" autocomplete="off">
+</div>
+<div class="col-6 col-12-xsmall">
+<input type="text" name="to" id="to" placeholder="To (Inclusive)" autocomplete="off">
+</div>
+<div class="col-6 col-12-xsmall">
+<select name="timebillableid" id="timebillableid" >
+selectedBillFilter
+</select>
+<input type="hidden" id="action" name="action" value='approvetimesheet'>
+<input type="hidden" id="e" name="e" value='ecache'>
+</div>
+<div class="col-6 col-12-xsmall">
+<select name="resourcefilterid" id="resourcefilterid" multiple>
+resourceFieldId
+</select>
+</div>
+<div class="col-6 col-12-xsmall">
+<input type="textarea" name="filtersData" id="filtersData" style="display:none">
+<textarea name=projectTaskSelectOption id=projectTaskSelectOption class="readonly" autocomplete="off" style="display:none">TaskListOption</textarea>		
+
+
+</div>
+<div class="col-12">
+<ul class="actions">
+<li><input type="submit" id="submitfilters" value="Submit" class="primary button small" /></li>
+<li><input type="reset" value="Reset" class="button small" /></li>
+</ul>
+</div>
+</div>
+</form>
+</div>
+</div> 
+</div>
+</div>
+</div>
+	<div id="wrapper">
+		<div id="main">
+			<div id="preloader"></div>
+			<div class="inner">
+				<h2 style=" padding-top: 1em;"><strong>Approve Timesheets</strong></h2>
+<hr style="width: 100%;height: 10px;margin-top: 1px;border: none;border-top: solid #e46829;">
+					<form id="approvetimesheetform" method="post" action="nonpostingaction">
+						<div class="col-12">
+							<ul class="actions">
+								<li>
+									<input id="approve" type="submit" value="Approve" class="primary" style="apprDisplayStyle" /> </li>
+								<li>
+									<input id="reject" type="submit" value="Reject" style="rejDisplayStyle" /> </li>
+							</ul>
+						</div>
+						<br>
+						<div class="col-6 col-12-xsmall">
+							<input type="textarea" name="Data" id="data" style="display:none">
+							<input type="hidden" id="action" name="action" value='approvetimesheet'>
+							<input type="hidden" id="e" name="e" value='ecache'> </div>
+						<div class="table-wrapper" style="width:100%; table-layout: fixed; ">
+							<table id="myTable" class="display panel panel-default" style="width:100%">
+								<thead>
+									<tr>
+										<th></th>
+										<th></th>
+										<th>Date</th>
+										<th>Name</th>
+										<th>Project</th>
+										<th>Task</th>
+										<th>Hours</th>
+                                                                               <th>Billable</th>
+										<th class='none'>Approver Comment: </th>
+										<th class='none'>Status</th>
+										<th class='none'>Comment: </th>
+										<th class='none'>recordId: </th>
+										<th class='none'>employeeId: </th>
+										<th>Line</th>
+									</tr>
+								</thead>
+								<tbody> tableData </tbody>
+							</table>
+						</div>
+						<br> </form>
+					<br> </section>
+			</div>
+		</div>
+		<div id="sidebar">
+			<div class="inner">
+				<nav id="menu">
+					<header class="major">
+						<h2>Menu</h2> </header>
+					<ul>
+						<li><a id="home" href="#">HOMEPAGE</a></li>
+<li><a id="dashboard" href="#">Dashboard</a></li>
+
+						<li><a id="project" href="#">Projects</a></li>
+						<li><a id="task" href="#">Tasks</a></li>
+						<li><a id="timesheets" href="#">Timesheets</a></li>
+						<li><a id="approvetimesheet" href="#">Approve Timesheets</a></li>
+						reportsPage
+					</ul>
+				</nav>
+				<footer id="footer">
+					<nav id="menu">
+						<ul>
+							<li><a id="logoutlink"><h4>Logout&nbsp;<i class="glyphicon glyphicon-off"></i></h4></a> </li>
+						</ul>
+					</nav>
+				</footer>
+			</div>
+		</div>
+	</div>
+	<script src="emp_portal_script"></script>
+	<script src="https://cdn.datatables.net/v/dt/dt-1.10.16/r-2.2.1/datatables.min.js"></script>
+	<script src="https://cdn.datatables.net/select/1.3.1/js/dataTables.select.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+	<script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+	<!-- For Excel Button -->
+	<script src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+	<!-- For Excel Button -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+	<!-- For Excel Button -->
+	<script src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
+	<!-- For Excel Button -->
+	<script>
+	$(document).ready(function() {
+		var entityId = "entityData";
+		var rowIndex = "";
+		var postData = {};
+		var dates = '';
+		var filtersPostData = {};
+		
+		if($("#tesid").html() != '' && $("#tesid").html() != null){
+    $("#confirmSubmission").modal("show");
+  }
+		
+
+		$("#approve,#reject,#export,#submitfilters").click(function(event) {
+						$("#preloader").addClass("pre-loader");
+		
+			postData['actionId'] = event.target.id;
+			postData['status'] = $("#status").val();
+		});
+		var table = $('#myTable').DataTable({
+			dom: 'Bfrtip',
+			"buttons": [{
+				text: 'Filters',
+				action: function(e, dt, node, config) {
+					$("#filterModal").modal("show");
+				}
+			},
+			 {
+    text: 'MarkAll',
+    className: 'selectall',
+     action : function(e) {
+     e.preventDefault();
+     table.rows({ page: 'all'}).nodes().each(function() {
+       $(this).removeClass('selected')
+     })
+     table.rows({ search: 'applied'}).nodes().each(function() {
+       $(this).addClass('selected');        
+     })
+       				$("#myModal").modal("show");
+       				  		var numSelectedRows = $('#myTable').DataTable().rows('.selected').count();
+       						$('#add_comment').click(function(event){
+		var enteredComment = $('#commentsId').val();
+		for(var i=0;i<numSelectedRows;i++)
+		{
+		console.log("i"+i)
+		var rowData        = table.row(i).data();
+		rowData[8]        = enteredComment;
+		}
+				table.row( numSelectedRows ).data(rowData).draw();
+		
+	});
+     
+   }
+},
+
+ {
+  text: 'UnmarkAll',
+  className: 'unselectall',
+  action : function(e) {
+    e.preventDefault();
+    table.rows({ page: 'all'}).nodes().each(function() {
+      $(this).removeClass('selected')
+    })
+    $("#myModal").modal("hide");
+  }
+}
+
+
+			 
+   
+			
+			
+			 ],
+			"columnDefs": [
+				               {
+				            	   orderable: false,
+				            	   className: 'select-checkbox',
+				            	   select: true,
+				            	   targets:   1
+				               },{
+				            	   "targets": [ 13],
+				            	   "visible": false,
+				            	   "searchable": false
+				               },{
+				            	   "targets": [ 11 ],
+				            	   "visible": false,
+				            	   "searchable": false
+				               },{
+				            	   "targets": [ 12 ],
+				            	   "visible": false,
+				            	   "searchable": false
+				               },
+				               
+				               ],
+			select: {
+				'style': 'multi',
+				selector: 'td:nth-child(2)'
+			},
+			order: [
+				[7, 'desc']
+			],
+			"responsive": true,
+			"bFilter": false,
+			"bLengthChange": false
+		});
+		
+		
+		
+		
+		
+		
+		$("#projectfilterid").change(function(){
+		
+		var $el = $("#taskfilterid");
+		var projectTaskSelect = $("#projectTaskSelectOption").val();
+				console.log("projectTaskSelect",projectTaskSelect+','+typeof projectTaskSelect);
+				console.log("projectTaskSelect",projectTaskSelect+','+typeof projectTaskSelect);
+				console.log("projectTaskSelect",projectTaskSelect.length+','+typeof projectTaskSelect);
+		
+		var projectId = $("#projectfilterid").val();
+		console.log("projectId",projectId+','+typeof projectId);
+		
+		var newOptionsParsed = JSON.parse(projectTaskSelect);
+				console.log("newOptionsParsed",newOptionsParsed);
+				console.log("newOptionsParsed",newOptionsParsed.length);
+		
+		var newOptions = newOptionsParsed[projectId]
+		console.log("newOptions",newOptions);
+		console.log("projectTaskSelect",projectTaskSelect);
+		console.log("$el",$el);
+		
+$el.empty(); // remove old options
+		console.log("$el",$el);
+
+$.each(newOptions, function(key,value) {
+  $el.append($("<option></option>")
+     .attr("value", value).text(key));
+});
+
+		console.log("$el",$el);
+});
+
+
+		$("#submitfiltersdata,#approvetimesheetform").submit(function(event) {
+			var id = this.id;
+			console.log("id", id);
+			var preLoader = false;
+			postData['recordId'] = [];
+			postData['Comments'] = [];
+			postData['employeeId'] = [];
+
+			filtersPostData['selected'] = [];
+			var selectData = table.rows(".selected").data();
+			var selectedDataCount = table.rows(".selected").data().length;
+						
+			if(selectedDataCount <= 0 && postData['actionId'] != 'export' && postData['actionId'] != 'submitfilters') {
+				alert('Please select atleast one line.');
+				$("#preloader").removeClass("pre-loader");
+
+				event.preventDefault();
+
+			} else {
+				$("#preloader").addClass("pre-loader");
+
+				if(id == "submitfiltersdata") {				
+					for(var option of document.getElementById('resourcefilterid').options) {
+						if(option.selected) {
+						if(option.value!='' && option.value!=null && option.value!=undefined){
+							filtersPostData['selected'].push(option.value);
+							}
+						}
+					}
+					console.log("filtersPostData out loop", filtersPostData);
+					$('#filtersData').val(JSON.stringify(filtersPostData));
+				}
+					for(var i = 0; i < selectData.length; i++) {
+						postData['employeeId'].push(selectData[i][12]);
+						postData['recordId'].push(selectData[i][11]);
+						postData['Comments'].push(selectData[i][8]);
+						
+						
+					}		
+			}
+			console.log("postData",postData);
+		//	alert("postdata"+JSON.stringify(postData));
+			
+			var rejectFlag = false;
+			var uncommentedlines = "";
+		if(postData['actionId'] == 'reject'){
+			for(var i=0;i<selectData.length;i++){
+				var commentVal = selectData[i][8];
+				var correctLine = selectData[i][13];
+				if(commentVal=='' || commentVal==null || commentVal==undefined){
+					uncommentedlines = uncommentedlines + (parseInt(correctLine)+1) + ",";
+					rejectFlag=true;
+					
+					
+				}
+			}
+			var lineslength = uncommentedlines.length;
+			var linesList = uncommentedlines.substring(0, lineslength-1);
+			if(rejectFlag == true){
+				alert("Please add comment for rejection for line number : " + linesList);
+					$("#preloader").removeClass("pre-loader");
+					event.preventDefault();
+			}
+		
+		}
+		
+		$('#data').val(JSON.stringify(postData));
+			if(postData['actionId'] == 'export') {
+				setTimeout(function() {
+					$("#preloader").removeClass("pre-loader");
+				}, 3000);
+			}
+			if(($('#from').val() == null || $('#from').val() == '') && ($('#to').val() != null && $('#to').val() != '')) {
+				$("#preloader").removeClass("pre-loader");
+				alert('Please Specify From Date');
+				event.preventDefault();
+			}
+			if(($('#from').val() != null && $('#from').val() != '') && ($('#to').val() == null || $('#to').val() == '')) {
+				$("#preloader").removeClass("pre-loader");
+				alert('Please Specify To Date');
+				event.preventDefault();
+			}
+		});
+		$("#logoutlink").click(function(event) {
+			window.location = "loginPage";
+		});
+		$("#workCollaborations,#dashboard,#project,#task,#timesheets,#expense,#report,#home,#closeproject,#createproject,#deleteproject,#myproject,#button,#updateproject,#updateprojectpage,#approvetimesheet,#reopenproject,#approvebuttonid").click(function(event){
+			var actionObj = {'workCollaborations':'workCollaborations','dashboard':'dashboard','home':'','project':'project','task':'task','timesheets':'timesheets','expense':'expense','report':'report','closeproject':'closeproject','createproject':'createproject','deleteproject':'deleteproject','myproject':'myproject','button':'button','updateprojectpage':'updateprojectpage','updateproject':'updateproject','approvetimesheet':'approvetimesheet','reopenproject':'reopenproject','approvebuttonid':'approvebuttonid'}
+		
+
+			var nonpostingLink = 'nonpostingaction';
+			var actionName = actionObj[$(this).attr('id')];
+			$("#preloader").addClass("pre-loader");
+			var form = document.createElement("form");
+			form.setAttribute("method", "post");
+			form.setAttribute("action", nonpostingLink);
+			form.setAttribute("target", '_self');
+			var input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = 'np';
+			input.value = 'T';
+			form.appendChild(input);
+			var input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = 'e';
+			input.value = 'ecache';
+			form.appendChild(input);
+			var input = document.createElement('input');
+			input.type = 'hidden';
+			input.name = 'action';
+			input.value = actionName;
+			form.appendChild(input);
+			document.body.appendChild(form);
+			form.submit();
+			document.body.removeChild(form);
+		});
+		//$('.buttonClick').click(function(event){
+		$('#myTable tbody').on( 'click', 'td:nth-child(2)', function () { 
+		rowIndex = event.target.id.split('_')[1];
+		var selectedRows = table.rows(".selected").data();
+		console.log("selectedRows",selectedRows);
+		console.log("rowIndex",rowIndex);
+		console.log("table.rows(",table.rows(".selected").data()[0]);
+		for(var i=0;i<selectedRows.length;i++){
+			if(table.rows(".selected").data()[i][12] == rowIndex)return;
+		}
+		var comment  = (table.row(rowIndex).data()[8] == '' || table.row(rowIndex).data()[8] == null || table.row(rowIndex).data()[8] == undefined) ? '':table.row(rowIndex).data()[8];
+		$('#commentsId').val(comment);
+		$("#myModal").modal("show");
+	});
+	$('#add_comment').click(function(event){
+		var enteredComment = $('#commentsId').val();
+		var rowData        = table.row(rowIndex).data();
+		
+		rowData[8]        = enteredComment;
+		
+		table.row( rowIndex ).data(rowData).draw();
+    });
+        $(function() {
+            var dateFormat = "mm/dd/yy",
+                from = $("#from").datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    numberOfMonths: 1,
+                    beforeShowDay: DisableDates
+                }).on("change", function() {
+                    to.datepicker("option", "minDate", getDate(this));
+                }),
+                to = $("#to").datepicker({
+                    defaultDate: "+1w",
+                    changeMonth: true,
+                    numberOfMonths: 1,
+                    beforeShowDay: DisableDates
+                }).on("change", function() {
+                    from.datepicker("option", "maxDate", getDate(this));
+                });
+			function getDate(element) {
+				var date;
+				try {
+					date = $.datepicker.parseDate(dateFormat, element.value);
+				} catch(error) {
+					date = null;
+				}
+				return date;
+			}
+
+			function DisableDates(date) {
+				var string = $.datepicker.formatDate("mm/dd/yy", date);
+				return [dates.indexOf(string) == -1];
+			}
+		});
+		$("#from").datepicker({
+			onSelect: function() {
+				$(this).change();
+			}
+		});
+		$("#to").datepicker({
+			onSelect: function() {
+				$(this).change();
+			}
+		});
+	});
+	</script>
+</body>
+
+</html>
